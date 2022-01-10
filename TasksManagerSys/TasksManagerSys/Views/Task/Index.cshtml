@@ -1,0 +1,159 @@
+﻿@model TaskVM
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/LayoutView.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager !=null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurretPage;
+    }
+}
+@section head{
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#btnsave").click(function () {
+            debugger
+            var taskId;
+            $(".taskbox").each(function () {                
+                if ($(this).prop("checked")) {
+                    debugger;
+                    var taskId=$(this).parent().parent().children("td:eq(0)").text();
+                    $.ajax({
+                        type: "post",
+                        url: 'http://localhost/TasksManagerSys/Task/SaveAsCompleted/'+taskId,
+                        success: function (data) {
+                            alert(data);
+                        },
+                        error: function () {
+                            alert("failed");
+                        }
+                    })
+                }
+            });
+        });
+    });
+</script>
+ }
+
+@section body{
+    <div class="container">
+        <form method="post">
+            <fieldset style=" min-width: 0; padding: 0; margin: 0; border-radius: 8px;">
+            <legend style=" display: block; width: 6%; padding: 0; margin-bottom: 20px; font-size: 21px; line-height: inherit; color: #333333; border: 0; border-bottom: 0px;">Search</legend>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="txtTask">Task</label>
+                        <input id="txtTask" name="txtTask" class="form-control" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="dllProject">Project</label>
+                        <select id="dllProject" name="dllProject" class="form-control" placeholder="Please select project..." asp-items='new SelectList(Model.liProject,"Id","Project_name")'></select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="dllUAddedBy">Added By</label>
+                        <select id="dllUAddedBy" class="form-control" name="dllUAddedBy" placeholder="Please select user..." asp-items='new SelectList(Model.liAppUser,"Id","Fname")'></select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label for="completedRb"> Completed</label>
+                    <div class="form-group" id="completedRb">
+                        <label for="rbAll">All</label>
+                        <input type="radio" id="rbAll" name="rbCompleted" value="2" class="form-check-input" />
+                        <label for="rbYes">Yes</label>
+                        <input type="radio" id="rbYes" name="rbCompleted" value="1" class="form-check-input"  />
+                        <label for="rbNo">No</label>
+                        <input type="radio" id="rbNo" name="rbCompleted" value="0" class="form-check-input"/>
+                    </div>
+                </div>
+                <div class="col-md-1" style="padding-top: 23px">
+                    <input type="submit" class="btn btn-primary" value="Search" asp-action="Search" />
+                </div>
+            </div>
+            </fieldset>
+        </form>
+        <div class="row">
+            <div class="row">
+                <div class="col-md-12">
+                    <table class="table table-hover table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Task</th>
+                                <th>Added date</th>
+                                <th>Completed</th>
+                                <th>Project Name</th>
+                                <th>Added By</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.liTask)
+                            {
+                                <tr>
+                                    <td class="id">@item.Id</td>
+                                    <td>@item.Task_desc</td>
+                                    <td>@item.Added_date</td>
+                                    @{
+                                        if (item.Completed == "0")
+                                        {
+                                            <td>No</td>
+                                        }
+                                        else
+                                        {
+                                            <td>Yes</td>
+                                        }
+                                    }
+                                    <td>@item.project.Project_name</td>
+                                    <td>@item.appUser.Fname @item.appUser.Lname</td>
+                                    <td><input type="checkbox" class="taskbox" /></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" style="display:inline-block">
+                        <input type="button" class="btn btn-primary" value="Save as completed" id="btnsave" />
+                    </div>
+                    <div style="float:right">
+                        @if (pager.TotalPages > 0)
+                        {
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-end" style="margin: 0;">
+                                    @if (pager.TotalPages > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" asp-controller="Task" asp-action="Index" asp-route-pg="1"> First </a>
+                                        </li>
+                                    }
+                                    @for (var pge = pager.StartPage; pge < pager.EndPage; pge++)
+                                    {
+                                        <li class="page-item @(pge==pager.CurretPage ? "active":"")">
+                                            <a class="page-link" asp-controller="Task" asp-action="Index" asp-route-pg="@pge">@pge</a>
+                                        </li>
+                                    }
+                                    @if (pager.CurretPage < pager.TotalPages)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" asp-controller="Task" asp-action="Index" asp-route-pg="@(pager.TotalPages)"> >> </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </nav>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
